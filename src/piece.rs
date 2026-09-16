@@ -177,7 +177,8 @@ impl Piece{
                 Colour::Black => (4&board.castle_rights != 0, 8&board.castle_rights != 0),
             };
             if queen_castle{
-                if !board.is_attacked(colour, sx-1, sy) && board.is_empty(sx-1, sy) && board.is_empty(sx-2, sy){
+                if !board.is_attacked(colour, sx-1, sy) && board.is_empty(sx-1, sy) && board.is_empty(sx-2, sy) && board.is_empty(sx-3,sy){
+                    
                     ret.push(IntMove {sx:sx, sy:sy, ex:sx-2, ey:sy, promotion_piece:None });
                 }
             }

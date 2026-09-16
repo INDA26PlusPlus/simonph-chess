@@ -91,7 +91,7 @@ mod tests {
         assert_eq!(board.valid_moves.len(),6);
         assert_eq!(board.perft(2),264);
         assert_eq!(board.perft(3), 9467);
-        let mut board = Board::from_fen("r2q1rk1/pP1p2pp/Q4n2/bbp1p3/Np6/1B3NBn/pPPP1PPP/R3K2R b KQ").unwrap();
+        board = Board::from_fen("r2q1rk1/pP1p2pp/Q4n2/bbp1p3/Np6/1B3NBn/pPPP1PPP/R3K2R b KQ").unwrap();
         assert_eq!(board.valid_moves.len(),6);
         assert_eq!(board.perft(2),264);
         assert_eq!(board.perft(3), 9467);

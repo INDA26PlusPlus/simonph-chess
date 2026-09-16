@@ -9,6 +9,7 @@ The board handles fen convertion, it handles generating all valid moves and it c
 The most useful functions are: Convert to intboard, make_and_validate_move, from_fen, 
 Note that the valid_moves Vec is very useful to find all moves that can be made by the user.
 */
+#[derive(Clone,PartialEq)]
 pub struct Board {
     turn:Colour,
     white_all: u64,
@@ -34,8 +35,8 @@ impl Board {
     }
     fn frombitpos(x:u64) -> (i8,i8){
         for i in 0..64{
-            if x < (1u64 << i){
-                return Board::getnormal(i-1);
+            if x == (1u64 << i){
+                return Board::getnormal(i);
             }
         }
         return (-1,-1);
@@ -172,8 +173,6 @@ impl Board {
         Board::print_bitmask(&self.enpasant);
         println!("castlerights");
         println!("{}",self.castle_rights);
-        println!("kings");
-        Board::print_bitmask(&self.white_pieces[Piece::get_index(Piece::King)]);
     }
     pub fn get_int_board(&self) -> [[u8; 8]; 8] {
         let mut board: [[u8; 8]; 8] = [[12; 8]; 8];
@@ -346,6 +345,7 @@ impl Board {
         if depth == 0{
             return 1;
         }
+        let board = self.clone();
         let mut cnt = 0;
         let valid_moves = self.get_valid_moves();
         for valid_move in valid_moves{
@@ -355,6 +355,9 @@ impl Board {
             cnt += self.perft(depth -1);
             self.excecute_move(&bit_move);
             self.turn = self.turn.opposite();
+            if board != *self{
+                panic!("undo changed something");
+            }
         }
         return cnt;
     }

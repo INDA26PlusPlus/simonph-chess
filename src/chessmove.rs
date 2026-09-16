@@ -14,6 +14,7 @@ impl BitMove {
         return BitMove { white_flips:[0;7], black_flips: [0;7], enpasant_flip: 0,castle_flip: 0};
     }
     pub fn from_int_move(int_move: IntMove,board:&Board,colour:&Colour)->Result<BitMove,String>{
+        assert!(Board::is_inside_board(int_move.ex, int_move.ey));
         let board_start_i = Board::getpos(int_move.sx,int_move.sy);
         let board_end_i = Board::getpos(int_move.ex,int_move.ey);
         let movepiece = board.get_piece(board_start_i, &colour);
@@ -54,6 +55,7 @@ impl BitMove {
             }
             if board.can_enpasant(board_end_i){
                 enemyarr[Piece::get_index(Piece::Pawn)] ^= 1u64 << Board::getpos(int_move.ex, int_move.sy);
+                enemyarr[6] ^= 1u64 << Board::getpos(int_move.ex, int_move.sy);
             }
         }
 
@@ -74,36 +76,24 @@ impl BitMove {
                 friendlyarr[6] ^= Board::getbit(5, int_move.sy);
             }
         }
-
+        //looks if a move ends or starts at the same place a starting rook would be and updates castling rights
         let mut castle_flips = 0u8;
-        if board_start_i == Board::getpos(0, 0) || board_end_i == Board::getpos(0, 0){
+        if (board_start_i == Board::getpos(0, 0)) || (board_end_i == Board::getpos(0, 0)){
             castle_flips |= board.castle_rights & CastleRights::getbit(&CastleRights::WQ);
         }
-        if board_start_i == Board::getpos(7, 0) || board_end_i == Board::getpos(7, 0){
+        if (board_start_i == Board::getpos(7, 0)) || (board_end_i == Board::getpos(7, 0)){
             castle_flips |= board.castle_rights & CastleRights::getbit(&CastleRights::WK);
         }
-        if board_start_i == Board::getpos(0, 7) || board_end_i == Board::getpos(0, 7){
+        if (board_start_i == Board::getpos(0, 7)) || (board_end_i == Board::getpos(0, 7)){
             castle_flips |= board.castle_rights & CastleRights::getbit(&CastleRights::BQ);
         }
-        if board_start_i == Board::getpos(7, 7) || board_end_i == Board::getpos(7, 7){
+        if (board_start_i == Board::getpos(7, 7)) || (board_end_i == Board::getpos(7, 7)){
             castle_flips |= board.castle_rights & CastleRights::getbit(&CastleRights::BK);
         }
-        if board_end_i == Board::getpos(0, 0) || board_end_i == Board::getpos(0, 0){
-            castle_flips |= board.castle_rights & CastleRights::getbit(&CastleRights::WQ);
-        }
-        if board_end_i == Board::getpos(7, 0) || board_end_i == Board::getpos(7, 0){
-            castle_flips |= board.castle_rights & CastleRights::getbit(&CastleRights::WK);
-        }
-        if board_end_i == Board::getpos(0, 7) || board_end_i == Board::getpos(0, 7){
-            castle_flips |= board.castle_rights & CastleRights::getbit(&CastleRights::BQ);
-        }
-        if board_end_i == Board::getpos(7, 7) || board_end_i == Board::getpos(7, 7){
-            castle_flips |= board.castle_rights & CastleRights::getbit(&CastleRights::BK);
-        }
-        if board_start_i == Board::getpos(4, 0) || board_end_i == Board::getpos(4, 0){
+        if (board_start_i == Board::getpos(4, 0)) || (board_end_i == Board::getpos(4, 0)){
             castle_flips |= board.castle_rights & 3;
         }
-        if board_start_i == Board::getpos(4, 7) || board_end_i == Board::getpos(4, 7){
+        if (board_start_i == Board::getpos(4, 7)) || (board_end_i == Board::getpos(4, 7)){
             castle_flips |= board.castle_rights & 12;
         }
 
