@@ -94,6 +94,7 @@ impl BitMove {
             Colour::Black => Ok(BitMove { white_flips: enemyarr, black_flips: friendlyarr, enpasant_flip:enpasant_flips,castle_flip: castle_flips}),
         }
     }
+    #[allow(dead_code)]
     pub fn from_string(inp:String,board:&Board,colour:&Colour)->Result<BitMove,String>{
         let int_move = match IntMove::parse(inp){
             Ok(val) => val,

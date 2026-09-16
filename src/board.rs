@@ -8,6 +8,7 @@ pub struct Board {
     black_all: u64,
     white_pieces: [u64; 6],
     black_pieces: [u64; 6],
+    pub valid_moves: Vec<IntMove>,
     pub enpasant: u64,
     pub castle_rights: u8,
 }
@@ -71,6 +72,7 @@ impl Board {
             black_all: 0,
             white_pieces: [0; 6],
             black_pieces: [0; 6],
+            valid_moves: Vec::new(),
             enpasant: 0,
             castle_rights: 15,
         }
@@ -121,6 +123,7 @@ impl Board {
             //     return Err(String::from("Index out of bounds"));
             // }
         }
+        board.valid_moves = board.get_valid_moves();
         return Ok(board);
     }
     #[allow(dead_code)]
@@ -268,27 +271,36 @@ impl Board {
     pub fn is_attacked(&self, colour:&Colour, x:i8, y:i8) -> bool{
         let all_opp = self.get_all_moves(&Colour::opposite(colour));
         for opp_move in all_opp{
-            let kingpos = match colour {
-                Colour::White => Board::frombitpos(self.white_pieces[Piece::get_index(Piece::King)]),
-                Colour::Black => Board::frombitpos(self.black_pieces[Piece::get_index(Piece::King)]),
-            };
             if opp_move.ex == x && opp_move.ey == y{
                 return true;
             }
         }
         return false;
     }
-    pub fn get_valid_moves(&mut self,colour:&Colour)->Vec<IntMove>{
-        let all_raw = [self.get_all_moves(&colour),Piece::generate_castle(self, colour)].concat();
+    pub fn get_valid_moves(&mut self)->Vec<IntMove>{
+        let all_raw = [self.get_all_moves(&self.turn),Piece::generate_castle(self, &self.turn)].concat();
         let mut all_valid : Vec<IntMove> = Vec::new();
         for x in all_raw{
-            let bit_move = BitMove::from_int_move(x, self, &colour).unwrap();
+            let bit_move = BitMove::from_int_move(x, self, &self.turn).unwrap();
             self.excecute_move(&bit_move);
-            if !self.in_check(colour){
+            if !self.in_check(&self.turn){
                 all_valid.push(x);
             }
             self.excecute_move(&bit_move);
         }
         return all_valid;
+    }
+    pub fn make_and_validate_move(&mut self,int_move: IntMove)->Option<String>{
+        if !self.valid_moves.contains(&int_move){
+            return Some(String::from("Not a valid move"));
+        } 
+        let bit_move = match BitMove::from_int_move(int_move, self, &self.turn){
+            Ok(v) => v,
+            Err(e) => return Some(e),
+        };
+        self.excecute_move(&bit_move);
+        self.turn = self.turn.opposite();
+        self.valid_moves = self.get_valid_moves();
+        return None;
     }
 }

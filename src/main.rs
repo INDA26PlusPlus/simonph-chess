@@ -14,8 +14,6 @@ fn main() {
             return;
         }
     };
-    
-    let mut curplayer = Colour::White;
     loop{
         board.print_bitmasks();
         board.print_board();
@@ -28,17 +26,10 @@ fn main() {
                 continue;
             }
         };
-        let possible_moves = board.get_valid_moves(&curplayer);
-        if !possible_moves.contains(&int_move){
-            println!("not a valid move");
-            continue;
+
+        match board.make_and_validate_move(int_move){
+            Some(e) => println!("{e}"),
+            None => {},
         }
-        let bit_move = BitMove::from_int_move(int_move,&board,&curplayer).unwrap();
-        board.excecute_move(&bit_move);
-        curplayer = match curplayer{
-            Colour::White => Colour::Black,
-            Colour::Black => Colour::White,
-        };
-        
     }
 }
