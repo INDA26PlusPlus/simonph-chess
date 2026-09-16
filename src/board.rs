@@ -89,21 +89,22 @@ impl Board {
         let j = Board::getpos(x, y);
         match colour {
             Colour::Black => {
-                self.black_pieces[i] |= 1 << j;
-                self.black_all |= 1 << j;
+                self.black_pieces[i] ^= 1 << j;
+                self.black_all ^= 1 << j;
             }
             Colour::White => {
-                self.white_pieces[i] |= 1 << j;
-                self.white_all |= 1 << j;
+                self.white_pieces[i] ^= 1 << j;
+                self.white_all ^= 1 << j;
             }
         }
     }
+    //This function can not take in a full fen. You should only pass in the first part.
     pub fn from_fen(fen: &str) -> Result<Board, String> {
         let mut x: i8 = 0;
         let mut y: i8 = 7;
         let mut board = Board::new();
-
-        for c in fen.chars() {
+        let parts:Vec<&str> = fen.split_whitespace().collect();
+        for c in parts[0].chars() {
             match c {
                 '/' => {
                     y -= 1;
@@ -129,6 +130,21 @@ impl Board {
             // if y < 0 || x >= 8{
             //     return Err(String::from("Index out of bounds"));
             // }
+        }
+        board.turn = match parts[1]{
+            "b" => Colour::Black,
+            "w" => Colour::White,
+            _ => return Err(String::from("second part is not w or b")), 
+        };
+        board.castle_rights = 0;
+        for c in parts[2].chars(){
+            match c{
+                'Q' => board.castle_rights |= 1,
+                'K' => board.castle_rights |= 2,
+                'q' => board.castle_rights |= 4,
+                'k' => board.castle_rights |= 8,
+                _ => {},
+            }
         }
         board.valid_moves = board.get_valid_moves();
         return Ok(board);
@@ -156,6 +172,8 @@ impl Board {
         Board::print_bitmask(&self.enpasant);
         println!("castlerights");
         println!("{}",self.castle_rights);
+        println!("kings");
+        Board::print_bitmask(&self.white_pieces[Piece::get_index(Piece::King)]);
     }
     pub fn get_int_board(&self) -> [[u8; 8]; 8] {
         let mut board: [[u8; 8]; 8] = [[12; 8]; 8];
@@ -275,8 +293,15 @@ impl Board {
         }
         return false;
     }
-    pub fn is_attacked(&self, colour:&Colour, x:i8, y:i8) -> bool{
+    pub fn is_attacked(&mut self, colour:&Colour, x:i8, y:i8) -> bool{
+        let spawned_piece = self.is_empty(x, y);
+        if spawned_piece{
+            self.create_piece(Piece::King, *colour, x, y);
+        }
         let all_opp = self.get_all_moves(&Colour::opposite(colour));
+        if spawned_piece{
+            self.create_piece(Piece::King, *colour, x, y);
+        }
         for opp_move in all_opp{
             if opp_move.ex == x && opp_move.ey == y{
                 return true;
@@ -285,7 +310,8 @@ impl Board {
         return false;
     }
     fn get_valid_moves(&mut self)->Vec<IntMove>{
-        let all_raw = [self.get_all_moves(&self.turn),Piece::generate_castle(self, &self.turn)].concat();
+        let turn = self.turn;
+        let all_raw = [self.get_all_moves(&self.turn),Piece::generate_castle(self, &turn)].concat();
         let mut all_valid : Vec<IntMove> = Vec::new();
         for x in all_raw{
             let bit_move = BitMove::from_int_move(x, self, &self.turn).unwrap();
@@ -297,23 +323,39 @@ impl Board {
         }
         return all_valid;
     }
-    pub fn make_and_validate_move(&mut self,int_move: IntMove)->Option<String>{
+    pub fn make_and_validate_move(&mut self,int_move: IntMove)->Result<(),String>{
         if !self.valid_moves.contains(&int_move){
-            return Some(String::from("Not a valid move"));
+            return Err(String::from("Not a valid move"));
         } 
         let bit_move = match BitMove::from_int_move(int_move, self, &self.turn){
             Ok(v) => v,
-            Err(e) => return Some(e),
+            Err(e) => return Err(e),
         };
         self.excecute_move(&bit_move);
         self.turn = self.turn.opposite();
         self.valid_moves = self.get_valid_moves();
-        return None;
+        return Ok(());
     }
     pub fn is_checkmate(&self)->bool{
         self.valid_moves.len() == 0 && self.in_check(&self.turn)
     }
     pub fn is_stalemate(&self)->bool{
         self.valid_moves.len() == 0 && !self.in_check(&self.turn)
+    }
+    pub fn perft(&mut self, depth:i8)-> i64{
+        if depth == 0{
+            return 1;
+        }
+        let mut cnt = 0;
+        let valid_moves = self.get_valid_moves();
+        for valid_move in valid_moves{
+            let bit_move = BitMove::from_int_move(valid_move,self,&self.turn).unwrap();
+            self.excecute_move(&bit_move);
+            self.turn = self.turn.opposite();
+            cnt += self.perft(depth -1);
+            self.excecute_move(&bit_move);
+            self.turn = self.turn.opposite();
+        }
+        return cnt;
     }
 }

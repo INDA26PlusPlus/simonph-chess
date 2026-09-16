@@ -61,12 +61,17 @@ impl BitMove {
             if int_move.sx - int_move.ex == 2{
                 let rooki = Piece::get_index(Piece::Rook);
                 friendlyarr[rooki] ^= Board::getbit(0, int_move.sy);
+                friendlyarr[6]^= Board::getbit(0, int_move.sy);
                 friendlyarr[rooki] ^= Board::getbit(3, int_move.sy);
+                friendlyarr[6] ^= Board::getbit(3, int_move.sy);
+
             }
             if int_move.sx - int_move.ex == -2{
                 let rooki = Piece::get_index(Piece::Rook);
                 friendlyarr[rooki] ^= Board::getbit(7, int_move.sy);
                 friendlyarr[rooki] ^= Board::getbit(5, int_move.sy);
+                friendlyarr[6] ^= Board::getbit(7, int_move.sy);
+                friendlyarr[6] ^= Board::getbit(5, int_move.sy);
             }
         }
 
@@ -83,6 +88,18 @@ impl BitMove {
         if board_start_i == Board::getpos(7, 7) || board_end_i == Board::getpos(7, 7){
             castle_flips |= board.castle_rights & CastleRights::getbit(&CastleRights::BK);
         }
+        if board_end_i == Board::getpos(0, 0) || board_end_i == Board::getpos(0, 0){
+            castle_flips |= board.castle_rights & CastleRights::getbit(&CastleRights::WQ);
+        }
+        if board_end_i == Board::getpos(7, 0) || board_end_i == Board::getpos(7, 0){
+            castle_flips |= board.castle_rights & CastleRights::getbit(&CastleRights::WK);
+        }
+        if board_end_i == Board::getpos(0, 7) || board_end_i == Board::getpos(0, 7){
+            castle_flips |= board.castle_rights & CastleRights::getbit(&CastleRights::BQ);
+        }
+        if board_end_i == Board::getpos(7, 7) || board_end_i == Board::getpos(7, 7){
+            castle_flips |= board.castle_rights & CastleRights::getbit(&CastleRights::BK);
+        }
         if board_start_i == Board::getpos(4, 0) || board_end_i == Board::getpos(4, 0){
             castle_flips |= board.castle_rights & 3;
         }
@@ -97,7 +114,7 @@ impl BitMove {
         }
     }
     #[allow(dead_code)]
-    pub fn from_string(inp:String,board:&Board,colour:&Colour)->Result<BitMove,String>{
+    pub fn from_string(inp:&str,board:&Board,colour:&Colour)->Result<BitMove,String>{
         let int_move = match IntMove::parse(inp){
             Ok(val) => val,
             Err(e) => return Err(e),
@@ -118,7 +135,7 @@ pub struct IntMove {
 impl IntMove {
     //Parses user input into an intmove. The user input should be of the format e2 e4 if it is a normal move
     //if it is a promotion the format should be e7 e8 q. where q can be replaced by the character for the piece.
-    pub fn parse(input: String) -> Result<IntMove, String> {
+    pub fn parse(input: &str) -> Result<IntMove, String> {
         let parts: Vec<&str> = input.split_whitespace().collect();
         let sx: i8;
         let sy: i8;
@@ -140,7 +157,7 @@ impl IntMove {
         };
         let piece:Option<Piece>;
         if parts.len() == 3{
-                piece = match Piece::get_type(&parts[3].chars().next().unwrap()){
+                piece = match Piece::get_type(&parts[2].chars().next().unwrap()){
                 Ok(val) => Some(val),
                 Err(e) => return Err(e),
             };

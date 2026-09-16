@@ -1,19 +1,16 @@
-mod board;
-use board::Board;
-use crate::{chessmove::IntMove};
-mod piece;
-mod utils;
-mod chessmove;
-
+use chesslib::Board;
+use chesslib::IntMove;
 
 fn main() {
-    let mut board = match Board::from_fen("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR"){
+    let mut board = match Board::from_fen("8/2p5/3p4/KP5r/1R3p1k/8/4P1P1/8 w -"){
         Ok(val) => val,
         Err(e) => {
             println!("{e}");
             return;
         }
     };
+    
+    //println!("{}",board.perft(4));
     loop{
         board.print_board();
         if board.is_checkmate(){
@@ -26,7 +23,7 @@ fn main() {
         }
         let mut inp:String = String::new();
         std::io::stdin().read_line(&mut inp).unwrap();
-        let int_move = match IntMove::parse(inp){
+        let int_move = match IntMove::parse(&inp){
             Ok(val) => val,
             Err(e) => {
                 println!("{e}");
@@ -35,8 +32,8 @@ fn main() {
         };
 
         match board.make_and_validate_move(int_move){
-            Some(e) => println!("{e}"),
-            None => {},
+            Err(e) => println!("{e}"),
+            Ok(()) => {},
         }
     }
 }

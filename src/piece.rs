@@ -90,6 +90,16 @@ impl Piece{
         }
         ret
     }
+    fn add_pawn_move(ret:&mut Vec<IntMove>, sx:i8, sy:i8, ex:i8,ey:i8){
+        if (ey == 0) || (ey == 7){
+            for promotion_piece in [Piece::Bishop, Piece::Rook, Piece::Queen, Piece::Knight]{
+                ret.push(IntMove{sx:sx,sy:sy,ex:ex,ey:ey,promotion_piece:Some(promotion_piece)});
+            }
+        }
+        else{
+            ret.push(IntMove { sx, sy, ex, ey, promotion_piece: None});
+        }
+    }
     fn generate_pawn(sx:i8,sy:i8,board:&Board,colour:&Colour)->Vec<IntMove>{
         let mut ret:Vec<IntMove> = Vec::new();
         let atstart = match colour{
@@ -101,49 +111,25 @@ impl Piece{
             Colour::White=>1,
         };
         if board.is_empty(sx,sy+dy){
-            ret.push(IntMove { sx, sy, ex:sx, ey: sy + dy, promotion_piece: None});
+            Piece::add_pawn_move(&mut ret, sx, sy, sx,sy+dy);
             if atstart && board.is_empty(sx, sy + 2*dy){
-                ret.push(IntMove { sx, sy, ex:sx, ey: sy + 2*dy, promotion_piece: None});
+                Piece::add_pawn_move(&mut ret, sx, sy, sx,sy+2*dy);
             }
         }
         if Board::is_inside_board(sx-1, sy + dy){
             if board.get_piece(Board::getpos(sx-1,sy+dy),&colour.opposite()).is_some(){
-                ret.push(IntMove { sx, sy, ex:sx-1, ey: sy + dy, promotion_piece: None});
+                Piece::add_pawn_move(&mut ret, sx, sy, sx-1,sy+dy);
             }
             if board.can_enpasant(Board::getpos(sx-1, sy + dy)){
-                ret.push(IntMove { sx, sy, ex:sx-1, ey: sy + dy, promotion_piece: None});
+                Piece::add_pawn_move(&mut ret, sx, sy, sx-1,sy+dy);
             }
         }
         if Board::is_inside_board(sx + 1, sy + dy){
             if board.get_piece(Board::getpos(sx+1,sy+dy),&colour.opposite()).is_some(){
-                ret.push(IntMove { sx, sy, ex:sx+1, ey: sy + dy, promotion_piece: None});
+                Piece::add_pawn_move(&mut ret, sx, sy, sx+1,sy+dy);
             }
             if board.can_enpasant(Board::getpos(sx + 1, sy + dy)){
-                ret.push(IntMove { sx, sy, ex:sx+1, ey: sy + dy, promotion_piece: None});
-            }
-        }
-        ret
-    }
-    pub fn generate_castle(board:&Board, colour:&Colour) -> Vec<IntMove>{
-        let mut ret : Vec<IntMove> = Vec::new();
-        let (sx,sy) = match colour{
-            Colour::White => (4,0),
-            Colour::Black => (4,7),
-        };
-        if !board.in_check(colour){
-            let (queen_castle, king_castle) = match colour{
-                Colour::White => (1&board.castle_rights != 0, 2&board.castle_rights != 0),
-                Colour::Black => (4&board.castle_rights != 0, 8&board.castle_rights != 0),
-            };
-            if queen_castle{
-                if !board.is_attacked(colour, sx-1, sy){
-                    ret.push(IntMove {sx:sx, sy:sy, ex:sx-2, ey:sy, promotion_piece:None });
-                }
-            }
-            if king_castle{
-                if !board.is_attacked(colour, sx+1, sy){
-                    ret.push(IntMove{sx:sx,sy:sy,ex:sx+2,ey:sy,promotion_piece:None});
-                }
+                Piece::add_pawn_move(&mut ret, sx, sy, sx+1,sy+dy);
             }
         }
         ret
@@ -175,6 +161,30 @@ impl Piece{
             let cy = sy + dy*DIRECTIONS[i].1;
             if Board::is_inside_board(cx, cy) && board.get_piece(Board::getpos(cx, cy), colour).is_none(){
                 ret.push(IntMove{sx,sy,ex:cx,ey:cy,promotion_piece:None});
+            }
+        }
+        ret
+    }
+    pub fn generate_castle(board:&mut Board, colour:&Colour) -> Vec<IntMove>{
+        let mut ret : Vec<IntMove> = Vec::new();
+        let (sx,sy) = match colour{
+            Colour::White => (4,0),
+            Colour::Black => (4,7),
+        };
+        if !board.in_check(colour){
+            let (queen_castle, king_castle) = match colour{
+                Colour::White => (1&board.castle_rights != 0, 2&board.castle_rights != 0),
+                Colour::Black => (4&board.castle_rights != 0, 8&board.castle_rights != 0),
+            };
+            if queen_castle{
+                if !board.is_attacked(colour, sx-1, sy) && board.is_empty(sx-1, sy) && board.is_empty(sx-2, sy){
+                    ret.push(IntMove {sx:sx, sy:sy, ex:sx-2, ey:sy, promotion_piece:None });
+                }
+            }
+            if king_castle{
+                if !board.is_attacked(colour, sx+1, sy) && board.is_empty(sx+1, sy) && board.is_empty(sx+2, sy){
+                    ret.push(IntMove{sx:sx,sy:sy,ex:sx+2,ey:sy,promotion_piece:None});
+                }
             }
         }
         ret
