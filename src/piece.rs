@@ -122,6 +122,30 @@ impl Piece{
         }
         ret
     }
+    pub fn generate_castle(board:&Board, colour:&Colour) -> Vec<IntMove>{
+        let mut ret : Vec<IntMove> = Vec::new();
+        let (sx,sy) = match colour{
+            Colour::White => (4,0),
+            Colour::Black => (4,7),
+        };
+        if !board.in_check(colour){
+            let (queen_castle, king_castle) = match colour{
+                Colour::White => (1&board.castle_rights != 0, 2&board.castle_rights != 0),
+                Colour::Black => (4&board.castle_rights != 0, 8&board.castle_rights != 0),
+            };
+            if queen_castle{
+                if !board.is_attacked(colour, sx-1, sy){
+                    ret.push(IntMove {sx:sx, sy:sy, ex:sx-2, ey:sy, promotion_piece:None });
+                }
+            }
+            if king_castle{
+                if !board.is_attacked(colour, sx+1, sy){
+                    ret.push(IntMove{sx:sx,sy:sy,ex:sx+2,ey:sy,promotion_piece:None});
+                }
+            }
+        }
+        ret
+    }
     fn generate_king(sx:i8,sy:i8,board:&Board,colour:&Colour)->Vec<IntMove>{
         let mut ret : Vec<IntMove> = Vec::new();
         for (dx,dy) in DIRECTIONS{

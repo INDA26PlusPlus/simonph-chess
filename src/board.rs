@@ -9,11 +9,15 @@ pub struct Board {
     white_pieces: [u64; 6],
     black_pieces: [u64; 6],
     pub enpasant: u64,
+    pub castle_rights: u8,
 }
 
 impl Board {
     pub fn getpos(x:i8, y:i8) -> i8{
         y*8 + x
+    }
+    pub fn getbit(x:i8, y:i8) -> u64{
+        return 1u64 << Board::getpos(x,y);
     }
     fn getnormal(i:i8) -> (i8,i8){
         let x = i%8;
@@ -68,6 +72,7 @@ impl Board {
             white_pieces: [0; 6],
             black_pieces: [0; 6],
             enpasant: 0,
+            castle_rights: 15,
         }
     }
     pub fn create_piece(&mut self, piece_type: Piece, colour: Colour, x: i8, y: i8) {
@@ -139,6 +144,8 @@ impl Board {
         Board::print_bitmask(&self.black_all);
         println!("enpasant");
         Board::print_bitmask(&self.enpasant);
+        println!("castlerights");
+        println!("{}",self.castle_rights);
     }
     pub fn get_int_board(&self) -> [[u8; 8]; 8] {
         let mut board: [[u8; 8]; 8] = [[12; 8]; 8];
@@ -218,7 +225,8 @@ impl Board {
         }
         self.white_all = self.white_all^bit_move.white_flips[6];
         self.black_all = self.black_all^bit_move.black_flips[6];
-        self.enpasant = self.enpasant^bit_move.enpasant_flip;
+        self.enpasant = self.enpasant^bit_move.enpasant_flip;   
+        self.castle_rights = self.castle_rights^bit_move.castle_flip;
     }
     pub fn get_all_moves(&self,colour:&Colour) -> Vec<IntMove>{
         let mut ret:Vec<IntMove> = Vec::new();
@@ -251,24 +259,35 @@ impl Board {
                 Colour::White => Board::frombitpos(self.white_pieces[Piece::get_index(Piece::King)]),
                 Colour::Black => Board::frombitpos(self.black_pieces[Piece::get_index(Piece::King)]),
             };
-            let all_opp = self.get_all_moves(&Colour::opposite(&self.turn));
-            for opp_move in all_opp{
-                if opp_move.ex == kingpos.0 && opp_move.ey == kingpos.1{
-                    return true;
-                }
+            if opp_move.ex == kingpos.0 && opp_move.ey == kingpos.1{
+                return true;
             }
         }
         return false;
     }
-    pub fn get_valid_moves(&mut self)->Vec<IntMove>{
-        let all_raw = self.get_all_moves(&self.turn);
+    pub fn is_attacked(&self, colour:&Colour, x:i8, y:i8) -> bool{
+        let all_opp = self.get_all_moves(&Colour::opposite(colour));
+        for opp_move in all_opp{
+            let kingpos = match colour {
+                Colour::White => Board::frombitpos(self.white_pieces[Piece::get_index(Piece::King)]),
+                Colour::Black => Board::frombitpos(self.black_pieces[Piece::get_index(Piece::King)]),
+            };
+            if opp_move.ex == x && opp_move.ey == y{
+                return true;
+            }
+        }
+        return false;
+    }
+    pub fn get_valid_moves(&mut self,colour:&Colour)->Vec<IntMove>{
+        let all_raw = [self.get_all_moves(&colour),Piece::generate_castle(self, colour)].concat();
         let mut all_valid : Vec<IntMove> = Vec::new();
         for x in all_raw{
-            let bit_move = BitMove::from_int_move(x, self, &self.turn).unwrap();
+            let bit_move = BitMove::from_int_move(x, self, &colour).unwrap();
             self.excecute_move(&bit_move);
-            if !self.in_check(&self.turn){
+            if !self.in_check(colour){
                 all_valid.push(x);
             }
+            self.excecute_move(&bit_move);
         }
         return all_valid;
     }

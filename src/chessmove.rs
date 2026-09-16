@@ -1,14 +1,15 @@
-use crate::{board::Board, piece::Piece,utils::Colour};
+use crate::{board::Board, piece::Piece,utils::Colour,utils::CastleRights};
 pub struct BitMove {
     pub white_flips: [u64; 7],
     pub black_flips: [u64; 7],
     pub enpasant_flip: u64,
+    pub castle_flip: u8,
 }
 
 impl BitMove {
     #[allow(dead_code)]
     pub fn new() -> BitMove{
-        return BitMove { white_flips:[0;7], black_flips: [0;7], enpasant_flip: 0};
+        return BitMove { white_flips:[0;7], black_flips: [0;7], enpasant_flip: 0,castle_flip: 0};
     }
     pub fn from_int_move(int_move: IntMove,board:&Board,colour:&Colour)->Result<BitMove,String>{
         let board_start_i = Board::getpos(int_move.sx,int_move.sy);
@@ -17,7 +18,9 @@ impl BitMove {
         let capturepiece = board.get_piece(board_end_i, &colour.opposite());
         let movei = match movepiece{
             Some(val) => Piece::get_index(val),
-            None => return Err(String::from("No piece at starting position")),
+            None => {
+                return Err(String::from("No piece at starting position"))
+            },
         };
 
 
@@ -52,10 +55,43 @@ impl BitMove {
             }
         }
 
+        if movepiece == Some(Piece::King){
+            if int_move.sx - int_move.ex == 2{
+                let rooki = Piece::get_index(Piece::Rook);
+                friendlyarr[rooki] ^= Board::getbit(0, int_move.sy);
+                friendlyarr[rooki] ^= Board::getbit(3, int_move.sy);
+            }
+            if int_move.sx - int_move.ex == -2{
+                let rooki = Piece::get_index(Piece::Rook);
+                friendlyarr[rooki] ^= Board::getbit(7, int_move.sy);
+                friendlyarr[rooki] ^= Board::getbit(5, int_move.sy);
+            }
+        }
+
+        let mut castle_flips = 0u8;
+        if board_start_i == Board::getpos(0, 0) || board_end_i == Board::getpos(0, 0){
+            castle_flips |= board.castle_rights & CastleRights::getbit(&CastleRights::WQ);
+        }
+        if board_start_i == Board::getpos(7, 0) || board_end_i == Board::getpos(7, 0){
+            castle_flips |= board.castle_rights & CastleRights::getbit(&CastleRights::WK);
+        }
+        if board_start_i == Board::getpos(0, 7) || board_end_i == Board::getpos(0, 7){
+            castle_flips |= board.castle_rights & CastleRights::getbit(&CastleRights::BQ);
+        }
+        if board_start_i == Board::getpos(7, 7) || board_end_i == Board::getpos(7, 7){
+            castle_flips |= board.castle_rights & CastleRights::getbit(&CastleRights::BK);
+        }
+        if board_start_i == Board::getpos(4, 0) || board_end_i == Board::getpos(4, 0){
+            castle_flips |= board.castle_rights & 3;
+        }
+        if board_start_i == Board::getpos(4, 7) || board_end_i == Board::getpos(4, 7){
+            castle_flips |= board.castle_rights & 12;
+        }
+
 
         match colour{
-            Colour::White => Ok(BitMove { white_flips: friendlyarr, black_flips: enemyarr,enpasant_flip:enpasant_flips}),
-            Colour::Black => Ok(BitMove { white_flips: enemyarr, black_flips: friendlyarr, enpasant_flip:enpasant_flips}),
+            Colour::White => Ok(BitMove { white_flips: friendlyarr, black_flips: enemyarr,enpasant_flip:enpasant_flips,castle_flip: castle_flips}),
+            Colour::Black => Ok(BitMove { white_flips: enemyarr, black_flips: friendlyarr, enpasant_flip:enpasant_flips,castle_flip: castle_flips}),
         }
     }
     pub fn from_string(inp:String,board:&Board,colour:&Colour)->Result<BitMove,String>{

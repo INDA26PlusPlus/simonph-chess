@@ -28,7 +28,7 @@ fn main() {
                 continue;
             }
         };
-        let possible_moves = board.get_all_moves(&curplayer);
+        let possible_moves = board.get_valid_moves(&curplayer);
         if !possible_moves.contains(&int_move){
             println!("not a valid move");
             continue;
@@ -39,5 +39,6 @@ fn main() {
             Colour::White => Colour::Black,
             Colour::Black => Colour::White,
         };
+        
     }
 }
