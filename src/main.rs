@@ -1,6 +1,6 @@
 mod board;
 use board::Board;
-use crate::{chessmove::BitMove,chessmove::IntMove, utils::Colour};
+use crate::{chessmove::IntMove};
 mod piece;
 mod utils;
 mod chessmove;
@@ -15,7 +15,6 @@ fn main() {
         }
     };
     loop{
-        board.print_bitmasks();
         board.print_board();
         if board.is_checkmate(){
             println!("CHECKMATE!");

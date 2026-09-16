@@ -1,4 +1,6 @@
 use crate::{board::Board, piece::Piece,utils::Colour,utils::CastleRights};
+
+//BitMove is used to make a move inside the Board struct.
 pub struct BitMove {
     pub white_flips: [u64; 7],
     pub black_flips: [u64; 7],
@@ -103,6 +105,8 @@ impl BitMove {
         return BitMove::from_int_move(int_move, board, colour); 
     }
 }
+
+//IntMove is a move stored as a start and end coordinate and a promotion piece. It is used as a more userfriendly format then bitmoves.
 #[derive(PartialEq,Copy,Clone)]
 pub struct IntMove {
     pub sx: i8,
@@ -112,6 +116,8 @@ pub struct IntMove {
     pub promotion_piece: Option<Piece>,
 }
 impl IntMove {
+    //Parses user input into an intmove. The user input should be of the format e2 e4 if it is a normal move
+    //if it is a promotion the format should be e7 e8 q. where q can be replaced by the character for the piece.
     pub fn parse(input: String) -> Result<IntMove, String> {
         let parts: Vec<&str> = input.split_whitespace().collect();
         let sx: i8;
@@ -145,7 +151,7 @@ impl IntMove {
         return Ok(IntMove{sx:sx,sy:sy,ex:ex,ey:ey,promotion_piece:piece});
     }
 }
-
+//turns chess cordinates ex e4 into board coordinates (4, 3) it will return (x,y) 
 fn parse_cords(inp: &str) -> Result<(i8, i8), String> {
     if inp.len() != 2 {
         return Err(format!(

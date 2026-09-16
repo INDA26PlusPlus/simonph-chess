@@ -2,6 +2,13 @@ use crate::piece::Piece;
 use crate::utils::Colour;
 use crate::chessmove::BitMove;
 use crate::chessmove::IntMove;
+/*
+A Board is a self contained instance of one game.
+A board stores all data for the game.
+The board handles fen convertion, it handles generating all valid moves and it can make an int board which converts the bitboard into a more userfriendly format.
+The most useful functions are: Convert to intboard, make_and_validate_move, from_fen, 
+Note that the valid_moves Vec is very useful to find all moves that can be made by the user.
+*/
 pub struct Board {
     turn:Colour,
     white_all: u64,
@@ -77,7 +84,7 @@ impl Board {
             castle_rights: 15,
         }
     }
-    pub fn create_piece(&mut self, piece_type: Piece, colour: Colour, x: i8, y: i8) {
+    fn create_piece(&mut self, piece_type: Piece, colour: Colour, x: i8, y: i8) {
         let i = Piece::get_index(piece_type);
         let j = Board::getpos(x, y);
         match colour {
@@ -220,7 +227,7 @@ impl Board {
         let i = Board::getpos(x,y);
         return (self.white_all & (1u64 << i) == 0) && (self.black_all & (1u64 << i) == 0);
     }
-    pub fn excecute_move(&mut self, bit_move:&BitMove){
+    fn excecute_move(&mut self, bit_move:&BitMove){
         
         for i in 0usize..6{
             self.white_pieces[i] = self.white_pieces[i]^bit_move.white_flips[i];
@@ -277,7 +284,7 @@ impl Board {
         }
         return false;
     }
-    pub fn get_valid_moves(&mut self)->Vec<IntMove>{
+    fn get_valid_moves(&mut self)->Vec<IntMove>{
         let all_raw = [self.get_all_moves(&self.turn),Piece::generate_castle(self, &self.turn)].concat();
         let mut all_valid : Vec<IntMove> = Vec::new();
         for x in all_raw{

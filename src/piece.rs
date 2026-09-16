@@ -1,6 +1,7 @@
 use crate::board::Board;
 use crate::chessmove::IntMove;
 use crate::utils::Colour;
+//An enum for the different pieces, it also stores functions for generating all valid moves.
 #[derive(PartialEq,Copy,Clone)]
 pub enum Piece{
     Pawn,
@@ -47,6 +48,7 @@ impl Piece{
             _ => Err(format!("{c} is not a piece"))
         }
     }
+    //generates all valid moves in one direction (untill it goes outside of the board or it hits a piece)
     fn generate_from_direction(sx:i8, sy:i8, dx:i8, dy:i8, board:&Board,colour:&Colour)->Vec<IntMove>{
         let mut cx = sx + dx;
         let mut cy = sy + dy;
