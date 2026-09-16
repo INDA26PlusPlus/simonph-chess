@@ -17,6 +17,14 @@ fn main() {
     loop{
         board.print_bitmasks();
         board.print_board();
+        if board.is_checkmate(){
+            println!("CHECKMATE!");
+            break;
+        }
+        if board.is_stalemate(){
+            println!("DRAW :(");
+            break;
+        }
         let mut inp:String = String::new();
         std::io::stdin().read_line(&mut inp).unwrap();
         let int_move = match IntMove::parse(inp){

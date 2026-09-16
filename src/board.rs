@@ -303,4 +303,10 @@ impl Board {
         self.valid_moves = self.get_valid_moves();
         return None;
     }
+    pub fn is_checkmate(&self)->bool{
+        self.valid_moves.len() == 0 && self.in_check(&self.turn)
+    }
+    pub fn is_stalemate(&self)->bool{
+        self.valid_moves.len() == 0 && !self.in_check(&self.turn)
+    }
 }
