@@ -99,7 +99,7 @@ impl Board {
             }
         }
     }
-    //This function can not take in a full fen. You should only pass in the first part.
+    //This function can not take in a full fen. It does not have support for enpasant and movecount.
     pub fn from_fen(fen: &str) -> Result<Board, String> {
         let mut x: i8 = 0;
         let mut y: i8 = 7;

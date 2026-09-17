@@ -76,6 +76,7 @@ mod tests {
         assert_eq!(board.valid_moves.len(),48);
         assert_eq!(board.perft(2),2039);
         assert_eq!(board.perft(3), 97862);
+        
     }
     #[test]
     fn perf2(){
