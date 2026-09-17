@@ -159,7 +159,7 @@ impl IntMove {
     }
 }
 //turns chess cordinates ex e4 into board coordinates (4, 3) it will return (x,y) 
-fn parse_cords(inp: &str) -> Result<(i8, i8), String> {
+pub fn parse_cords(inp: &str) -> Result<(i8, i8), String> {
     if inp.len() != 2 {
         return Err(format!(
             "length of {inp} is not 2 unable to parse coordinate"

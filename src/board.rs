@@ -1,3 +1,4 @@
+use crate::chessmove;
 use crate::piece::Piece;
 use crate::utils::Colour;
 use crate::chessmove::BitMove;
@@ -99,7 +100,7 @@ impl Board {
             }
         }
     }
-    //This function can not take in a full fen. It does not have support for enpasant and movecount.
+    //This function can not take in a full fen. It does not have support for movecount.
     pub fn from_fen(fen: &str) -> Result<Board, String> {
         let mut x: i8 = 0;
         let mut y: i8 = 7;
@@ -147,6 +148,15 @@ impl Board {
                 _ => {},
             }
         }
+        board.enpasant = match parts[3]{
+            "-" => 0,
+            _ => {
+                match chessmove::parse_cords(parts[3]){
+                    Err(e) => return Err(e),
+                    Ok(cords) => Board::getbit(cords.0, cords.1),
+                }
+            } 
+        };
         board.valid_moves = board.get_valid_moves();
         return Ok(board);
     }
@@ -255,7 +265,7 @@ impl Board {
         self.enpasant = self.enpasant^bit_move.enpasant_flip;   
         self.castle_rights = self.castle_rights^bit_move.castle_flip;
     }
-    pub fn get_all_moves(&self,colour:&Colour) -> Vec<IntMove>{
+    fn get_all_moves(&self,colour:&Colour) -> Vec<IntMove>{
         let mut ret:Vec<IntMove> = Vec::new();
         let alloop:&u64 = match colour{
             Colour::White => &self.white_all,
