@@ -1,6 +1,7 @@
 pub mod board;
 pub use board::Board;
 pub use chessmove::IntMove;
+pub use utils::Colour;
 pub mod piece;
 pub mod utils;
 pub mod chessmove;

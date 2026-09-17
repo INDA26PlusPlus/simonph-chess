@@ -7,7 +7,7 @@ use crate::chessmove::IntMove;
 A Board is a self contained instance of one game.
 A board stores all data for the game.
 The board handles fen convertion, it handles generating all valid moves and it can make an int board which converts the bitboard into a more userfriendly format.
-The most useful functions are: Convert to intboard, make_and_validate_move, from_fen, 
+The most useful functions are: Convert to intboard, make_and_validate_move, from_fen, is_checkmate, is_stalemate, is_check
 Note that the valid_moves Vec is very useful to find all moves that can be made by the user.
 */
 #[derive(Clone,PartialEq)]
@@ -100,7 +100,7 @@ impl Board {
             }
         }
     }
-    //This function can not take in a full fen. It does not have support for movecount.
+    //This function does not have support for movecount.
     pub fn from_fen(fen: &str) -> Result<Board, String> {
         let mut x: i8 = 0;
         let mut y: i8 = 7;
@@ -265,6 +265,7 @@ impl Board {
         self.enpasant = self.enpasant^bit_move.enpasant_flip;   
         self.castle_rights = self.castle_rights^bit_move.castle_flip;
     }
+    //used internaly to generate all pseudo legal moves.
     fn get_all_moves(&self,colour:&Colour) -> Vec<IntMove>{
         let mut ret:Vec<IntMove> = Vec::new();
         let alloop:&u64 = match colour{
@@ -289,6 +290,7 @@ impl Board {
         }
         ret
     }
+    //returns if the king of that colour can be captured.
     pub fn in_check(&self, colour:&Colour)->bool{
         let all_opp = self.get_all_moves(&Colour::opposite(colour));
         for opp_move in all_opp{
@@ -302,6 +304,7 @@ impl Board {
         }
         return false;
     }
+    //spawns a piece at that position to check if another piece can attack that square.
     pub fn is_attacked(&mut self, colour:&Colour, x:i8, y:i8) -> bool{
         let spawned_piece = self.is_empty(x, y);
         if spawned_piece{
@@ -318,6 +321,7 @@ impl Board {
         }
         return false;
     }
+    //used internaly to generate all valid moves. Runs at the end of every make and validate move call.
     fn get_valid_moves(&mut self)->Vec<IntMove>{
         let turn = self.turn;
         let all_raw = [self.get_all_moves(&self.turn),Piece::generate_castle(self, &turn)].concat();
@@ -332,6 +336,7 @@ impl Board {
         }
         return all_valid;
     }
+    //This is the main function to make moves with a board. It will return Ok if the move was valid and everything worked.
     pub fn make_and_validate_move(&mut self,int_move: IntMove)->Result<(),String>{
         if !self.valid_moves.contains(&int_move){
             return Err(String::from("Not a valid move"));
@@ -345,12 +350,15 @@ impl Board {
         self.valid_moves = self.get_valid_moves();
         return Ok(());
     }
+
+    //checks if the player who is supposed to play next is in checkmate
     pub fn is_checkmate(&self)->bool{
         self.valid_moves.len() == 0 && self.in_check(&self.turn)
     }
     pub fn is_stalemate(&self)->bool{
         self.valid_moves.len() == 0 && !self.in_check(&self.turn)
     }
+    //counts nr of leafnodes of depth d in the search tree.
     pub fn perft(&mut self, depth:i8)-> i64{
         if depth == 0{
             return 1;

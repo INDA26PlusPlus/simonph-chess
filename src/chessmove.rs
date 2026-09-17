@@ -1,6 +1,6 @@
 use crate::{board::Board, piece::Piece,utils::Colour,utils::CastleRights};
 
-//BitMove is used to make a move inside the Board struct.
+//BitMove is used to make a move inside the Board struct. Should ignore for gui.
 pub struct BitMove {
     pub white_flips: [u64; 7],
     pub black_flips: [u64; 7],
