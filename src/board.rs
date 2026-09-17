@@ -184,6 +184,8 @@ impl Board {
         println!("castlerights");
         println!("{}",self.castle_rights);
     }
+    //An empty square is represented by 12. All pieces have their normal i that can be found in the piece enum.
+    //Black pieces get their int value increased by 6.
     pub fn get_int_board(&self) -> [[u8; 8]; 8] {
         let mut board: [[u8; 8]; 8] = [[12; 8]; 8];
         for i in 0u8..6 {
