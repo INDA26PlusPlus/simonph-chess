@@ -1,5 +1,4 @@
 use crate::chessmove;
-use crate::piece;
 use crate::piece::Piece;
 use crate::utils::Colour;
 use crate::chessmove::BitMove;
@@ -408,7 +407,7 @@ impl Board {
                 }
                 let piece_type = Piece::from_index((int_board[y][x]%6) as usize).unwrap();
                 let white_piece = int_board[y][x] < 6;
-                let piece_char = Piece::to_char(&piece_type);
+                let mut piece_char = Piece::to_char(&piece_type);
                 if !white_piece{
                     piece_char = piece_char.to_ascii_uppercase();
                 }
