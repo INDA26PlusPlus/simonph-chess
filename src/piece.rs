@@ -48,6 +48,16 @@ impl Piece{
             _ => Err(format!("{c} is not a piece"))
         }
     }
+    pub fn to_char(piece:&Piece) -> char{
+        match piece{
+            Piece::Pawn => 'p',
+            Piece::Rook => 'r',
+            Piece::Knight => 'n',
+            Piece::Bishop => 'b',
+            Piece::Queen => 'q',
+            Piece::King => 'k',
+        }
+    }
     //generates all valid moves in one direction (untill it goes outside of the board or it hits a piece)
     fn generate_from_direction(sx:i8, sy:i8, dx:i8, dy:i8, board:&Board,colour:&Colour)->Vec<IntMove>{
         let mut cx = sx + dx;

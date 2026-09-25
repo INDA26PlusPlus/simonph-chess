@@ -1,4 +1,5 @@
 use crate::chessmove;
+use crate::piece;
 use crate::piece::Piece;
 use crate::utils::Colour;
 use crate::chessmove::BitMove;
@@ -395,5 +396,25 @@ impl Board {
             }
         }
         return cnt;
+    }
+    pub fn get_board_representation(&self) -> String{
+        let int_board = self.get_int_board();
+        let mut ret = "".to_string();
+        for y in (0..8).rev(){
+            for x in 0..8{
+                if int_board[y][x] == 12{
+                    ret.push(' ');
+                    continue;
+                }
+                let piece_type = Piece::from_index((int_board[y][x]%6) as usize).unwrap();
+                let white_piece = int_board[y][x] < 6;
+                let piece_char = Piece::to_char(&piece_type);
+                if !white_piece{
+                    piece_char = piece_char.to_ascii_uppercase();
+                }
+                ret.push(piece_char);
+            }
+        }
+        return ret;
     }
 }
